@@ -1,10 +1,9 @@
 '''
-1. Generate extract video frames into folder
-2. Generate .txt file for frame labels
+run vid_prep.py
 '''
 
 #   VISUALIZATION
-#   python demo.py configs/culane.py --test_model path_to_culane_18.pth
+#   python run_model.py configs/mycarry_culane.py --test_model culane_18.pth
 #   or
 #   python demo.py configs/tusimple.py --test_model path_to_tusimple_18.pth
 
@@ -17,7 +16,7 @@ import scipy.special, tqdm
 import numpy as np
 import torchvision.transforms as transforms
 from data.dataset import LaneTestDataset
-from data.constant import culane_row_anchor, tusimple_row_anchor
+from data.constant import culane_row_anchor, tusimple_row_anchor, mycarry_row_anchor
 
 if __name__ == "__main__":
     #   enables CUDA CuDNN benchmark for better performance on fixed input sizes
@@ -38,7 +37,7 @@ if __name__ == "__main__":
     else:
         raise NotImplementedError
 
-    net = parsingNet(pretrained = False, backbone=cfg.backbone, cls_dim = (cfg.griding_num+1,cls_num_per_lane,4),
+    net = parsingNet(pretrained = False, backbone=cfg.backbone, cls_dim = (cfg.griding_num+1, cls_num_per_lane, 4),
                     use_aux=False).cuda() # we dont need auxiliary segmentation in testing
 
     state_dict = torch.load(cfg.test_model, map_location='cpu')['model']
@@ -70,18 +69,18 @@ if __name__ == "__main__":
     #     img_w, img_h = 1280, 720
     #     row_anchor = tusimple_row_anchor
     if cfg.dataset == 'mycarry':
-        splits = ['testest.txt']
+        splits = ['test_00.txt']    ### CHANGE
         datasets = [LaneTestDataset(cfg.data_root,os.path.join(cfg.data_root, split),img_transform = img_transforms) for split in splits]
         img_w, img_h = 1920, 1080
-        row_anchor = culane_row_anchor
+        row_anchor = mycarry_row_anchor
     else:
         raise NotImplementedError
 
     for split, dataset in zip(splits, datasets):
         loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle = False, num_workers=1)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        print(split[:-3]+'mp4')
-        vout = cv2.VideoWriter('MYCARRYDATA/' + split[:-3] + '.mp4', fourcc , 30.0, (img_w, img_h))
+        print('out_' + split.split(".")[0] + '.mp4')
+        vout = cv2.VideoWriter('MYCARRYDATA/out_' + split.split(".")[0] + '.mp4', fourcc , 30.0, (img_w, img_h))
         
         for i, data in enumerate(tqdm.tqdm(loader)):
             imgs, names = data
