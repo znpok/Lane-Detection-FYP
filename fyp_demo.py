@@ -1,10 +1,15 @@
 '''
 run vid_prep.py
-edit "split" variable
+edit "splits" variable (line 77)
+
+CHECK:
+- dataset
+- img dimensions
 '''
 
 #   VISUALIZATION
-#   python run_model.py configs/mycarry_culane.py --test_model culane_18.pth
+#   python fyp_demo.py configs/mycarry_culane.py --test_model culane_18.pth
+#   python fyp_demo.py configs/mycarry.py --test_model .\ep007.pth 
 #   or
 #   python demo.py configs/tusimple.py --test_model path_to_tusimple_18.pth
 
@@ -17,7 +22,7 @@ import scipy.special, tqdm
 import numpy as np
 import torchvision.transforms as transforms
 from data.dataset import LaneTestDataset
-from data.constant import culane_row_anchor, tusimple_row_anchor, mycarry_row_anchor
+from data.constant import culane_row_anchor, tusimple_row_anchor, mycarry_culane_row_anchor, mycarry_tusimple_row_anchor
 
 if __name__ == "__main__":
     #   enables CUDA CuDNN benchmark for better performance on fixed input sizes
@@ -29,12 +34,10 @@ if __name__ == "__main__":
     assert cfg.backbone in ['18','34','50','101','152','50next','101next','50wide','101wide']
 
     #   number of classes per lane
-    if cfg.dataset == 'CULane':
+    if cfg.dataset == 'CULane' or cfg.dataset == 'mycarry_culane':
         cls_num_per_lane = 18
-    elif cfg.dataset == 'Tusimple':
+    elif cfg.dataset == 'Tusimple' or cfg.dataset == 'mycarry_tusimple':
         cls_num_per_lane = 56
-    elif cfg.dataset == 'mycarry':
-        cls_num_per_lane = 18
     else:
         raise NotImplementedError
 
@@ -69,11 +72,16 @@ if __name__ == "__main__":
     #     datasets = [LaneTestDataset(cfg.data_root,os.path.join(cfg.data_root, split),img_transform = img_transforms) for split in splits]
     #     img_w, img_h = 1280, 720
     #     row_anchor = tusimple_row_anchor
-    if cfg.dataset == 'mycarry':
+    if cfg.dataset == 'mycarry_culane':
         splits = ['test_00.txt']    ### CHANGE
         datasets = [LaneTestDataset(cfg.data_root,os.path.join(cfg.data_root, split),img_transform = img_transforms) for split in splits]
         img_w, img_h = 1920, 1080
-        row_anchor = mycarry_row_anchor
+        row_anchor = mycarry_culane_row_anchor
+    elif cfg.dataset == 'mycarry_tusimple':
+        splits = ['test_69.txt']    ### CHANGE
+        datasets = [LaneTestDataset(cfg.data_root,os.path.join(cfg.data_root, split),img_transform = img_transforms) for split in splits]
+        img_w, img_h = 1280, 720   ### CHANGE
+        row_anchor = mycarry_tusimple_row_anchor
     else:
         raise NotImplementedError
 
@@ -81,8 +89,13 @@ if __name__ == "__main__":
         loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle = False, num_workers=1)
         fourcc = cv2.VideoWriter_fourcc(*'MJPG')
         print('out_' + split.split(".")[0] + '.avi')
-        vout = cv2.VideoWriter('MYCARRYDATA/out_' + split.split(".")[0] + '.avi', fourcc , 30.0, (img_w, img_h))
+        # vout = cv2.VideoWriter('MYCARRYDATA/out_' + split.split(".")[0] + '.avi', fourcc , 30.0, (img_w, img_h))
         
+        ###     output dir for annotated images
+        out_dir = os.path.join('MYCARRYDATA', 'out_'+split.split(".")[0])
+        os.makedirs(out_dir, exist_ok=True)
+        output_counter = 1
+
         for i, data in enumerate(tqdm.tqdm(loader)):
             imgs, names = data
             imgs = imgs.cuda()
@@ -109,7 +122,12 @@ if __name__ == "__main__":
                     for k in range(out_j.shape[0]):
                         if out_j[k, i] > 0:
                             ppp = (int(out_j[k, i] * col_sample_w * img_w / 800) - 1, int(img_h * (row_anchor[cls_num_per_lane-1-k]/288)) - 1 )
-                            cv2.circle(vis, ppp, 10, (0,255,0), -1)
-            vout.write(vis)
+                            cv2.circle(vis, ppp, 5, (0,255,0), -1)
+            # vout.write(vis)
+
+            ###     export annotated images
+            frame_dir = os.path.join(out_dir, str(output_counter) +'.jpg')
+            cv2.imwrite(frame_dir, vis)
+            output_counter+=1
 
    
