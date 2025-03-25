@@ -46,17 +46,18 @@ def save_filenames_to_txt(frames_path, txt_path):
     except Exception as e:
         print(f"Error: {e}")
 
+##  CHANGE VID PATH
+video_path = 'C:/Users/pokzh/Desktop/Lane Detection FYP/Ultra-Fast-Lane-Detection/MYCARRYDATA/raw/sgroad_yellow.mp4' 
+vid_filename = (video_path.split("/")[-1]).split(".")[0]
+
+#   FRAMES FOLDER AND .TXT FILE NAME MUST BE THE SAME
+frames_path = 'C:/Users/pokzh/Desktop/Lane Detection FYP/Ultra-Fast-Lane-Detection/MYCARRYDATA/' + vid_filename + '_frames'
+txt_path = 'C:/Users/pokzh/Desktop/Lane Detection FYP/Ultra-Fast-Lane-Detection/MYCARRYDATA/' + vid_filename + '.txt'
 
 if __name__ == "__main__":
-    ##  CHANGE VID PATH
-    video_path = 'C:/Users/pokzh/Desktop/Lane Detection FYP/Ultra-Fast-Lane-Detection/MYCARRYDATA/01.mp4' 
-    vid_filename = (video_path.split("/")[-1]).split(".")[0]
-
-    #   FRAMES FOLDER AND .TXT FILE NAME MUST BE THE SAME
-    frames_path = 'C:/Users/pokzh/Desktop/Lane Detection FYP/Ultra-Fast-Lane-Detection/MYCARRYDATA/' + vid_filename + '_frames'
-    txt_path = 'C:/Users/pokzh/Desktop/Lane Detection FYP/Ultra-Fast-Lane-Detection/MYCARRYDATA/' + vid_filename + '.txt'
-
+    print("Extracting frames...")
     extract_frames(video_path, frames_path)
+    print("Extracting frame paths...")
     save_filenames_to_txt(frames_path, txt_path)
 
 

@@ -11,8 +11,7 @@ CHECK:
 #   python fyp_demo.py configs/mycarry_culane.py --test_model culane_18.pth
 #   python fyp_demo.py configs/mycarry.py --test_model .\ep007.pth 
 #   or
-#   python fyp_demo.py configs/tusimple.py --test_model tusimple_18.pth
-#   python fyp_demo.py configs/culane.py --test_model culane_18.pth
+#   python demo.py configs/tusimple.py --test_model path_to_tusimple_18.pth
 
 import torch, os, cv2
 from model.model import parsingNet
@@ -24,6 +23,7 @@ import numpy as np
 import torchvision.transforms as transforms
 from data.dataset import LaneTestDataset
 from data.constant import culane_row_anchor, tusimple_row_anchor, mycarry_culane_row_anchor, mycarry_tusimple_row_anchor
+import vid_preprocess
 
 if __name__ == "__main__":
     #   enables CUDA CuDNN benchmark for better performance on fixed input sizes
@@ -63,18 +63,20 @@ if __name__ == "__main__":
     ])
 
     #   define test split and loads test images using LaneTestDataset class
-    if cfg.dataset == 'CULane':
-        splits = ['test0_normal.txt', 'test1_crowd.txt', 'test2_hlight.txt', 'test3_shadow.txt', 'test4_noline.txt', 'test5_arrow.txt', 'test6_curve.txt', 'test7_cross.txt', 'test8_night.txt']
-        datasets = [LaneTestDataset(cfg.data_root,os.path.join(cfg.data_root, 'list/test_split/'+split),img_transform = img_transforms) for split in splits]
-        img_w, img_h = 1640, 590
-        row_anchor = culane_row_anchor
-    elif cfg.dataset == 'Tusimple':
-        splits = ['test.txt']
-        datasets = [LaneTestDataset(cfg.data_root,os.path.join(cfg.data_root, split),img_transform = img_transforms) for split in splits]
-        img_w, img_h = 1280, 720
-        row_anchor = tusimple_row_anchor
-    elif cfg.dataset == 'mycarry_culane':
-        splits = ['sgroad_arrow.txt']    ### CHANGE
+    # if cfg.dataset == 'CULane':
+    #     splits = ['test0_normal.txt', 'test1_crowd.txt', 'test2_hlight.txt', 'test3_shadow.txt', 'test4_noline.txt', 'test5_arrow.txt', 'test6_curve.txt', 'test7_cross.txt', 'test8_night.txt']
+    #     datasets = [LaneTestDataset(cfg.data_root,os.path.join(cfg.data_root, 'list/test_split/'+split),img_transform = img_transforms) for split in splits]
+    #     img_w, img_h = 1640, 590
+    #     row_anchor = culane_row_anchor
+    # elif cfg.dataset == 'Tusimple':
+    #     splits = ['test.txt']
+    #     datasets = [LaneTestDataset(cfg.data_root,os.path.join(cfg.data_root, split),img_transform = img_transforms) for split in splits]
+    #     img_w, img_h = 1280, 720
+    #     row_anchor = tusimple_row_anchor
+    if cfg.dataset == 'mycarry_culane':
+        full_path = vid_preprocess.txt_path
+        rel_path = full_path.split("/")[-1]
+        splits = [rel_path]    ### CHANGE
         datasets = [LaneTestDataset(cfg.data_root,os.path.join(cfg.data_root, split),img_transform = img_transforms) for split in splits]
         img_w, img_h = 1920, 1080   ### CHANGE
         row_anchor = mycarry_culane_row_anchor
